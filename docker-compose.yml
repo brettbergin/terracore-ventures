@@ -10,11 +10,6 @@ services:
       - ./gunicorn.conf.py:/app/gunicorn.conf.py  # Mount gunicorn config from project root
     restart: unless-stopped
     environment:
-      SECRET_KEY: "devsecret"
-      SQLALCHEMY_DATABASE_URI: “dummy”
-      OPENAI_API_KEY: "sk-test"
-      GOOGLE_OAUTH_CLIENT_ID: “dummy”
-      GOOGLE_OAUTH_CLIENT_SECRET: “dummy”
       OAUTHLIB_INSECURE_TRANSPORT: "1"
 
 volumes:
