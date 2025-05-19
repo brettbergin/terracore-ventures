@@ -11,10 +11,10 @@ services:
     restart: unless-stopped
     environment:
       SECRET_KEY: "devsecret"
-      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://terracore:terracoreisawesome@host.docker.internal:3306/terracore_ventures"
+      SQLALCHEMY_DATABASE_URI: “dummy”
       OPENAI_API_KEY: "sk-test"
-      GOOGLE_OAUTH_CLIENT_ID: "795171987366-g3csl3r6i5gkh9pqbj9hdvcmrolrrn1e.apps.googleusercontent.com"
-      GOOGLE_OAUTH_CLIENT_SECRET: "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"
+      GOOGLE_OAUTH_CLIENT_ID: “dummy”
+      GOOGLE_OAUTH_CLIENT_SECRET: “dummy”
       OAUTHLIB_INSECURE_TRANSPORT: "1"
 
 volumes:
