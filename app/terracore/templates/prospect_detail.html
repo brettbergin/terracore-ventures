@@ -1,0 +1,90 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Prospect Detail</h2>
+  <div class="mb-3">
+    <a href="{{ prospect.zillow_url }}" target="_blank">View on Zillow</a>
+    <form method="post" action="{{ url_for('main.add_to_watchlist', prospect_id=prospect.id) }}" style="display:inline-block">
+      {% if current_user.is_authenticated and prospect.id in [w.prospect_id for w in current_user.watchlist] %}
+        <button formaction="{{ url_for('main.remove_from_watchlist', prospect_id=prospect.id) }}" class="btn btn-outline-danger btn-sm ms-2">Remove from Watchlist</button>
+      {% else %}
+        <button class="btn btn-outline-primary btn-sm ms-2">Add to Watchlist</button>
+      {% endif %}
+    </form>
+    <a href="{{ url_for('main.watchlist') }}" class="btn btn-link btn-sm">My Watchlist</a>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Property Data</h5>
+      <ul class="list-group mb-3">
+        {% for k, v in pdata.items() if k not in ['images', 'notes'] %}
+        <li class="list-group-item"><strong>{{ k|capitalize }}:</strong> {{ v }}</li>
+        {% endfor %}
+      </ul>
+      <h5>Upload Image</h5>
+      <form method="post" enctype="multipart/form-data" class="mb-3">
+        <input type="file" name="image" accept="image/*" class="form-control mb-2">
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
+      <h5>Images</h5>
+      <div class="row">
+        {% for img in images %}
+        <div class="col-4 mb-2">
+          <img src="{{ url_for('static', filename='uploads/' ~ img) }}" class="img-fluid rounded">
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <h5>Notes</h5>
+      <form method="post" class="mb-3">
+        <textarea name="note" class="form-control mb-2" placeholder="Add a note..."></textarea>
+        <button type="submit" class="btn btn-secondary">Add Note</button>
+      </form>
+      <ul class="list-group mb-3">
+        {% for note in notes %}
+        <li class="list-group-item"><strong>{{ note.user }}:</strong> {{ note.note }}</li>
+        {% endfor %}
+      </ul>
+      <h5>Comments</h5>
+      <form method="post" action="{{ url_for('main.add_comment', prospect_id=prospect.id) }}" class="mb-3">
+        <textarea name="comment" class="form-control mb-2" placeholder="Add a comment..."></textarea>
+        <button type="submit" class="btn btn-info">Add Comment</button>
+      </form>
+      <ul class="list-group mb-3">
+        {% for comment in prospect.comments %}
+        <li class="list-group-item"><strong>{{ comment.user.email }}:</strong> {{ comment.text }} <span class="text-muted float-end">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span></li>
+        {% endfor %}
+      </ul>
+      <h5>Map</h5>
+      <div id="map" style="height: 300px;"></div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Try to geocode address using Nominatim
+  const address = {{ pdata.address|tojson }};
+  if (address) {
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+      .then(resp => resp.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+          const map = L.map('map').setView([lat, lon], 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+          }).addTo(map);
+          L.marker([lat, lon]).addTo(map).bindPopup(address).openPopup();
+        } else {
+          document.getElementById('map').innerHTML = '<div class="text-muted">Address not found on map.</div>';
+        }
+      });
+  } else {
+    document.getElementById('map').innerHTML = '<div class="text-muted">No address available for map.</div>';
+  }
+</script>
+{% endblock %} 

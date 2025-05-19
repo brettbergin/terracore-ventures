@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <div class="custom-header text-center">
+    <h1>Terracore Ventures</h1>
+  </div>
+  {% if current_user.is_authenticated %}
+    <div class="alert alert-success text-center" role="alert">
+      You are logged in as <strong>{{ current_user.name or current_user.email }}</strong>.
+    </div>
+    <div class="d-grid gap-3 col-6 mx-auto mt-4">
+      <a href="{{ url_for('main.prospects') }}" class="btn btn-primary btn-lg">View Prospects</a>
+      <a href="{{ url_for('main.watchlist') }}" class="btn btn-outline-info btn-lg">My Watchlist</a>
+      <a href="{{ url_for('main.profile') }}" class="btn btn-outline-secondary btn-lg">My Profile</a>
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-outline-dark btn-lg">Admin Dashboard</a>
+        <a href="{{ url_for('main.prospect_review') }}" class="btn btn-outline-warning btn-lg">Prospect Review</a>
+        <a href="{{ url_for('main.edit_assumptions') }}" class="btn btn-outline-primary btn-lg">Edit Financial Assumptions</a>
+        <a href="{{ url_for('main.manage_partners') }}" class="btn btn-outline-success btn-lg">Manage Partners</a>
+        <a href="{{ url_for('main.auditlog') }}" class="btn btn-outline-secondary btn-lg">Audit Log</a>
+        <a href="{{ url_for('main.export_csv') }}" class="btn btn-outline-success btn-lg">Export CSV</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Prospects Needing Review</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Zillow URL</th>
+        <th>Status</th>
+        <th>Raw Data</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for prospect in prospects %}
+      <tr>
+        <td><a href="{{ prospect.zillow_url }}" target="_blank">Zillow</a></td>
+        <td>{{ prospect.status }}</td>
+        <td><pre style="max-width:400px; max-height:100px; overflow:auto;">{{ prospect.raw_data }}</pre></td>
+        <td><a href="{{ url_for('main.review_prospect', prospect_id=prospect.id) }}" class="btn btn-sm btn-primary">Review/Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} 

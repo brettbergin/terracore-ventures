@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>My Profile</h2>
+  {% if user.avatar_url %}
+    <div class="mb-4 text-center">
+      <img src="{{ user.avatar_url }}" alt="avatar" class="rounded-circle" style="width:96px;height:96px;object-fit:cover;">
+    </div>
+  {% endif %}
+  <form method="post" class="mb-4">
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" value="{{ user.email }}" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Full Name (from Google)</label>
+      <input type="text" class="form-control" value="{{ user.name }}" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Display Name</label>
+      <input type="text" class="form-control" name="display_name" value="{{ user.display_name or '' }}">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Phone</label>
+      <input type="text" class="form-control" name="phone" value="{{ user.phone or '' }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Update Profile</button>
+  </form>
+  <h4>My Submitted Prospects</h4>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Zillow URL</th>
+        <th>Address</th>
+        <th>Price</th>
+        <th>Rent</th>
+        <th>Beds</th>
+        <th>Baths</th>
+        <th>Added</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for prospect in prospects %}
+      {% set pdata = prospect.data | default('{}') | tojson | loads %}
+      <tr>
+        <td><a href="{{ prospect.zillow_url }}" target="_blank">Zillow</a></td>
+        <td>{{ pdata.address or '—' }}</td>
+        <td>{{ pdata.price or '—' }}</td>
+        <td>{{ pdata.estimated_rent or '—' }}</td>
+        <td>{{ pdata.beds or '—' }}</td>
+        <td>{{ pdata.baths or '—' }}</td>
+        <td>{{ prospect.created_at.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} 

@@ -1,0 +1,179 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Admin Dashboard</h2>
+  <form method="post" action="{{ url_for('main.analyze_all_prospects') }}" class="mb-3">
+    <button type="submit" class="btn btn-warning">Analyze All Unanalyzed Prospects (ChatGPT)</button>
+  </form>
+  <a href="{{ url_for('main.manage_partners') }}" class="btn btn-outline-info mb-3">Manage Partners</a>
+  {% set needs_review = prospects|selectattr('status', 'equalto', 'needs_review')|list %}
+  {% if needs_review|length > 0 %}
+    <a href="{{ url_for('main.prospect_review') }}" class="btn btn-outline-warning mb-3">
+      Review Prospects <span class="badge bg-danger">{{ needs_review|length }}</span>
+    </a>
+  {% endif %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Zillow URL</th>
+        <th>Address</th>
+        <th>Price</th>
+        <th>Beds</th>
+        <th>Baths</th>
+        <th>Est. Rent</th>
+        <th>Added</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for prospect in prospects %}
+      {% set pdata = prospect.data | default('{}') | tojson | loads %}
+      <tr>
+        <td><a href="{{ prospect.zillow_url }}" target="_blank">Zillow</a></td>
+        <td>{{ pdata.address or '—' }}</td>
+        <td>{{ pdata.price or '—' }}</td>
+        <td>{{ pdata.beds or '—' }}</td>
+        <td>{{ pdata.baths or '—' }}</td>
+        <td>{{ pdata.estimated_rent or '—' }}</td>
+        <td>{{ prospect.created_at.strftime('%Y-%m-%d') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <h5>Financial Assumptions <a href="{{ url_for('main.edit_assumptions') }}" class="btn btn-sm btn-outline-primary">Edit</a></h5>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">Expense Ratio: {{ (assumptions.expense_ratio * 100)|round(2) }}%</li>
+          <li class="list-group-item">Interest Rate: {{ (assumptions.interest_rate * 100)|round(2) }}%</li>
+          <li class="list-group-item">Down Payment: {{ (assumptions.down_payment * 100)|round(2) }}%</li>
+          <li class="list-group-item">Appreciation Rate: {{ (assumptions.appreciation_rate * 100)|round(2) }}%</li>
+          <li class="list-group-item">Projection Years: {{ assumptions.years }}</li>
+        </ul>
+      </div>
+      <h4>Portfolio Summary</h4>
+      <table class="table table-sm">
+        <tr><th>Total Properties</th><td>{{ financials.count }}</td></tr>
+        <tr><th>Total Price</th><td>${{ '%.2f'|format(financials.total_price) }}</td></tr>
+        <tr><th>Total Rent (Monthly)</th><td>${{ '%.2f'|format(financials.total_rent) }}</td></tr>
+        <tr><th>NOI (Annual)</th><td>${{ '%.2f'|format(financials.total_noi) }}</td></tr>
+        <tr><th>Cash Flow (Annual)</th><td>${{ '%.2f'|format(financials.total_cash_flow) }}</td></tr>
+        <tr><th>Avg Cap Rate</th><td>{{ '%.2f'|format(financials.avg_cap_rate) }}%</td></tr>
+        <tr><th>Partner Split (Annual)</th><td>${{ '%.2f'|format(financials.partner_split) }}</td></tr>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <canvas id="portfolioChart"></canvas>
+    </div>
+  </div>
+  <h4 class="mt-5">Multi-Year Projections</h4>
+  {% for detail in financials.details %}
+    <div class="card mb-4">
+      <div class="card-header">
+        <strong>{{ detail.address }}</strong> | IRR: {% if detail.irr is not none %}{{ (detail.irr * 100) | round(2) }}%{% else %}N/A{% endif %}
+      </div>
+      <div class="card-body">
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Value</th>
+              <th>Rent</th>
+              <th>NOI</th>
+              <th>Cash Flow</th>
+              <th>Equity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for y in detail.projections %}
+            <tr>
+              <td>{{ y.year }}</td>
+              <td>${{ y.value | round(0) | int | string | replace(',', '') }}</td>
+              <td>${{ y.rent | round(0) | int | string | replace(',', '') }}</td>
+              <td>${{ y.noi | round(0) | int | string | replace(',', '') }}</td>
+              <td>${{ y.cash_flow | round(0) | int | string | replace(',', '') }}</td>
+              <td>${{ y.equity | round(0) | int | string | replace(',', '') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endfor %}
+  <h4 class="mt-5">Scenario Analysis</h4>
+  <form id="scenario-form" method="post" action="{{ url_for('main.scenario_analysis') }}" class="row g-2 mb-4">
+    <div class="col-md-2">
+      <input type="number" step="0.01" min="0" max="1" class="form-control" name="expense_ratio" placeholder="Expense Ratio" value="{{ assumptions.expense_ratio }}">
+      <div class="form-text">Expense Ratio</div>
+    </div>
+    <div class="col-md-2">
+      <input type="number" step="0.01" min="0" max="1" class="form-control" name="interest_rate" placeholder="Interest Rate" value="{{ assumptions.interest_rate }}">
+      <div class="form-text">Interest Rate</div>
+    </div>
+    <div class="col-md-2">
+      <input type="number" step="0.01" min="0" max="1" class="form-control" name="down_payment" placeholder="Down Payment" value="{{ assumptions.down_payment }}">
+      <div class="form-text">Down Payment</div>
+    </div>
+    <div class="col-md-2">
+      <input type="number" step="0.01" min="0" max="1" class="form-control" name="appreciation_rate" placeholder="Appreciation Rate" value="{{ assumptions.appreciation_rate }}">
+      <div class="form-text">Appreciation Rate</div>
+    </div>
+    <div class="col-md-2">
+      <input type="number" min="1" max="30" class="form-control" name="years" placeholder="Years" value="{{ assumptions.years }}">
+      <div class="form-text">Years</div>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="submit" class="btn btn-warning w-100">Run Scenario</button>
+    </div>
+  </form>
+  <div id="scenario-results"></div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('portfolioChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ chart_data.labels|tojson }},
+        datasets: [
+          {
+            label: 'Price',
+            data: {{ chart_data.prices|tojson }},
+            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+          },
+          {
+            label: 'Rent',
+            data: {{ chart_data.rents|tojson }},
+            backgroundColor: 'rgba(75, 192, 192, 0.5)'
+          },
+          {
+            label: 'NOI',
+            data: {{ chart_data.nois|tojson }},
+            backgroundColor: 'rgba(255, 206, 86, 0.5)'
+          },
+          {
+            label: 'Cash Flow',
+            data: {{ chart_data.cash_flows|tojson }},
+            backgroundColor: 'rgba(255, 99, 132, 0.5)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Portfolio Metrics by Property' }
+        }
+      }
+    });
+
+    document.getElementById('scenario-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      const resp = await fetch(form.action, { method: 'POST', body: data });
+      const html = await resp.text();
+      document.getElementById('scenario-results').innerHTML = html;
+    };
+  </script>
+</div>
+{% endblock %} 

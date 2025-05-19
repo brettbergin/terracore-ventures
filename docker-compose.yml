@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  flask:
+    build: ./app
+    container_name: terracore-flask
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./app:/app
+      - ./gunicorn.conf.py:/app/gunicorn.conf.py  # Mount gunicorn config from project root
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: "devsecret"
+      SQLALCHEMY_DATABASE_URI: "mysql+pymysql://terracore:terracoreisawesome@host.docker.internal:3306/terracore_ventures"
+      OPENAI_API_KEY: "sk-test"
+      GOOGLE_OAUTH_CLIENT_ID: "795171987366-g3csl3r6i5gkh9pqbj9hdvcmrolrrn1e.apps.googleusercontent.com"
+      GOOGLE_OAUTH_CLIENT_SECRET: "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"
+      OAUTHLIB_INSECURE_TRANSPORT: "1"
+
+volumes:
+  mysql_data:

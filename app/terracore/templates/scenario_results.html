@@ -1,0 +1,49 @@
+<div class="alert alert-info">Scenario Results</div>
+<div class="row mb-4">
+  <div class="col-md-6">
+    <h5>Scenario Summary</h5>
+    <table class="table table-sm">
+      <tr><th>Total Properties</th><td>{{ financials.count }}</td></tr>
+      <tr><th>Total Price</th><td>${{ '%.2f'|format(financials.total_price) }}</td></tr>
+      <tr><th>Total Rent (Monthly)</th><td>${{ '%.2f'|format(financials.total_rent) }}</td></tr>
+      <tr><th>NOI (Annual)</th><td>${{ '%.2f'|format(financials.total_noi) }}</td></tr>
+      <tr><th>Cash Flow (Annual)</th><td>${{ '%.2f'|format(financials.total_cash_flow) }}</td></tr>
+      <tr><th>Avg Cap Rate</th><td>{{ '%.2f'|format(financials.avg_cap_rate) }}%</td></tr>
+      <tr><th>Partner Split (Annual)</th><td>${{ '%.2f'|format(financials.partner_split) }}</td></tr>
+    </table>
+  </div>
+</div>
+<h5>Multi-Year Projections</h5>
+{% for detail in financials.details %}
+  <div class="card mb-4">
+    <div class="card-header">
+      <strong>{{ detail.address }}</strong> | IRR: {% if detail.irr is not none %}{{ (detail.irr * 100) | round(2) }}%{% else %}N/A{% endif %}
+    </div>
+    <div class="card-body">
+      <table class="table table-sm table-bordered">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Value</th>
+            <th>Rent</th>
+            <th>NOI</th>
+            <th>Cash Flow</th>
+            <th>Equity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for y in detail.projections %}
+          <tr>
+            <td>{{ y.year }}</td>
+            <td>${{ y.value | round(0) | int | string | replace(',', '') }}</td>
+            <td>${{ y.rent | round(0) | int | string | replace(',', '') }}</td>
+            <td>${{ y.noi | round(0) | int | string | replace(',', '') }}</td>
+            <td>${{ y.cash_flow | round(0) | int | string | replace(',', '') }}</td>
+            <td>${{ y.equity | round(0) | int | string | replace(',', '') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endfor %} 

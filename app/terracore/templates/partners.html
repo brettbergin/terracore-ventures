@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Partners</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Partner?</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.name or '—' }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role }}</td>
+        <td>{% if user.role == 'admin' %}Yes{% else %}No{% endif %}</td>
+        <td>
+          {% if user.id != current_user.id %}
+            {% if user.role != 'admin' %}
+              <form method="post" action="{{ url_for('main.promote_user', user_id=user.id) }}" style="display:inline-block">
+                <button class="btn btn-sm btn-success" type="submit">Promote</button>
+              </form>
+            {% else %}
+              <form method="post" action="{{ url_for('main.demote_user', user_id=user.id) }}" style="display:inline-block">
+                <button class="btn btn-sm btn-warning" type="submit">Demote</button>
+              </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('main.remove_user', user_id=user.id) }}" style="display:inline-block" onsubmit="return confirm('Remove user {{ user.email }}?');">
+              <button class="btn btn-sm btn-danger" type="submit">Remove</button>
+            </form>
+          {% else %}
+            <span class="text-muted">(You)</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} 

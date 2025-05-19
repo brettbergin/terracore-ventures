@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2>Review Prospect Data</h2>
+  <div class="mb-3">
+    <label class="form-label">Zillow URL</label>
+    <a href="{{ prospect.zillow_url }}" target="_blank">{{ prospect.zillow_url }}</a>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Raw ChatGPT Data</label>
+    <pre style="max-width:600px; max-height:200px; overflow:auto;">{{ prospect.raw_data }}</pre>
+  </div>
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label">Parsed Data (JSON)</label>
+      <textarea class="form-control" name="data" rows="10">{{ prospect.raw_data }}</textarea>
+      <div class="form-text">Edit the JSON as needed, then save to approve.</div>
+    </div>
+    <button type="submit" class="btn btn-success">Approve & Save</button>
+    <a href="{{ url_for('main.prospect_review') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %} 
